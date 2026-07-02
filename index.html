@@ -275,6 +275,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const sharedCloudLink = urlParams.get('feedUrl');
             
+            if(!sharedCloudLink){
+    currentActiveCloudUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKtrka4vOj91ieEQ2gsD70CTMevbvloIdeX7b2GibykQJ-qbgL-anNjiLBm2jr4TOZex07YpnHLcMH/pub?output=xlsx";
+}
+            
             if(sharedCloudLink) {
                 currentActiveCloudUrl = decodeURIComponent(sharedCloudLink);
                 document.getElementById('storageSourceEngine').value = "cloud";
