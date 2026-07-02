@@ -274,7 +274,7 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
 
         window.onload = function() {
             const urlParamsShared = new URLSearchParams(window.location.search);
-const isSharedMode = urlParamsShared.get('shared') === 'true';
+const isSharedMode = urlParamsShared.get('shared') === 'true' || urlParamsShared.get('s') !== null;
 
 if(isSharedMode){
     document.getElementById('storageSourceEngine').style.display = 'none';
@@ -289,6 +289,7 @@ document.querySelector('label').style.display = 'none';
             
             const urlParams = new URLSearchParams(window.location.search);
             const encodedSheet = urlParams.get('s');
+const encodedSheet = urlParams.get('s');
 const sharedCloudLink = encodedSheet ? atob(encodedSheet) : urlParams.get('feedUrl');
             
             if(!sharedCloudLink){
