@@ -726,31 +726,22 @@ You can now share it with anyone.");
         }
 
         function changeActiveTab(targetTab) {
-    ['dashboard', 'formView'].forEach(t => {
-        document.getElementById('tabView-' + t).classList.add('hidden');
-    });
-
-    document.getElementById('tabView-' + targetTab).classList.remove('hidden');
-
-    // Reset both buttons
-    document.getElementById('btn-tab-dashboard').classList.remove('bg-blue-600');
+            ['dashboard', 'formView'].forEach(t => document.getElementById('tabView-' + t).classList.add('hidden'));
+            document.getElementById('tabView-' + targetTab).classList.remove('hidden');
+            
+            document.getElementById('btn-tab-dashboard').classList.remove('bg-blue-600');
     document.getElementById('btn-tab-formView').classList.remove('bg-blue-600');
-
-    // Activate current button
-    if (targetTab === 'dashboard') {
-        document.getElementById('btn-tab-dashboard').classList.add('bg-blue-600');
-    } else {
-        document.getElementById('btn-tab-formView').classList.add('bg-blue-600');
-    }
-
-    // Load profile form if needed
-    if (targetTab === 'formView' && masterAssetMemory.length > 0) {
-        const uSel = document.getElementById('formUserSelector');
-        if (uSel.children.length > 0) {
-            loadUserProfileForm(uSel.value);
-        }
-    }
+            
+            if(targetTab === 'dashboard'){
+    document.getElementById('btn-tab-dashboard').classList.add('bg-blue-600');
+} else {
+    document.getElementById('btn-tab-formView').classList.add('bg-blue-600');
 }
+            if(targetTab === 'formView' && masterAssetMemory.length > 0) {
+                const uSel = document.getElementById('formUserSelector');
+                if(uSel.children.length > 0) loadUserProfileForm(uSel.value);
+            }
+        }
 
         function escapeHtml(str) {
             if(!str) return '';
