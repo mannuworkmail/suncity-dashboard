@@ -68,7 +68,7 @@
 
         <!-- GLOBAL SETTINGS ONLY IN HEADER -->
         <div class="w-1/4 flex justify-end">
-            <button onclick="openSecuritySettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition">
+            <button id="settingsOpenBtn" onclick="openSecuritySettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition">
                 ⚙️ Settings
             </button>
         </div>
@@ -120,7 +120,7 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                     <div id="localUploadWrapperZone">
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl cursor-pointer shadow-xs text-center block w-full transition">
                             📥 Browse Excel File
-                            <input type="file" accept=".xlsx, .xls" class="hidden" onchange="importSpreadsheetFile(event)">
+                            <input type="file" accept=".xlsx, .xls" class="hidden" onchange="verifyBrowsePassword(event)">
                         </label>
                     </div>
 
@@ -130,15 +130,10 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                         <button onclick="saveCloudUrlAndFetchData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs">Connect Sheet</button>
                     </div>
 
-                    <!-- Permanent Share Button -->
-                    <button id="btnShareDashboardLink" onclick="shareDashboardPublicLink()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-xs transition flex items-center justify-center space-x-2">
-                        <span>🔗</span> <span>Share Dashboard Link</span>
-                    </button>
-
                     <!-- Cloud Feed Refresh Button -->
                     <div id="sidebarRefreshSection" class="hidden">
                         <button onclick="fetchDataFromCloudEngineDirect()" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-md transition flex items-center justify-center space-x-1">
-                            <span>🔄</span> <span>Refresh Cloud Feed</span>
+                            <span>🔄</span> <span>Update Dashboard</span>
                         </button>
                     </div>
                 </div>
@@ -250,6 +245,10 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                     <input type="text" id="cfgCompanyBrandingInput" placeholder="Ex: Suncity Metals & Tubes Pvt. Ltd." class="w-full border rounded-xl p-2 text-xs font-bold">
                 </div>
                 <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Browse File Password</label>
+                    <input type="password" id="cfgBrowsePasswordInput" placeholder="Set Browse File Password" class="w-full border rounded-xl p-2 text-xs font-mono">
+                </div>
+                <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">New Master Password</label>
                     <input type="password" id="cfgSystemPasswordInput" placeholder="Enter New Password" class="w-full border rounded-xl p-2 text-xs font-mono">
                 </div>
@@ -269,20 +268,11 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
     <!-- LOGIC MANAGEMENT ENGINE SCRIPT -->
     <script>
         let masterAssetMemory = [];
-        let systemAdminPassword = "admin123";
+        let systemAdminPassword = "1234";
         let currentActiveCloudUrl = "";
 
         window.onload = function() {
-            const urlParamsShared = new URLSearchParams(window.location.search);
-const isSharedMode = urlParamsShared.get('shared') === 'true';
-
-if(isSharedMode){
-    document.getElementById('storageSourceEngine').style.display = 'none';
-document.getElementById('cloudUrlInputWrapperZone').style.display = 'none';
-document.getElementById('btnShareDashboardLink').style.display = 'none';
-document.getElementById('settingsOpenBtn').style.display = 'none';
-document.querySelector('label').style.display = 'none';
-}
+            
             if(localStorage.getItem('sc_cfg_pass')) systemAdminPassword = localStorage.getItem('sc_cfg_pass');
             if(localStorage.getItem('sc_cfg_title')) applyCompanyBrandingTitle(localStorage.getItem('sc_cfg_title'));
             if(localStorage.getItem('suncity_logo_b64')) document.getElementById('companyLogoImage').src = localStorage.getItem('suncity_logo_b64');
@@ -311,6 +301,12 @@ document.querySelector('label').style.display = 'none';
                 rebuildIntelligentFilters('all');
                 syncFiltersAndRender();
             }
+
+            setInterval(() => {
+                if(currentActiveCloudUrl){
+                    fetchDataFromCloudEngineDirect();
+                }
+            }, 30000);
         };
 
         function toggleDarkModeTheme() {
@@ -398,16 +394,7 @@ document.querySelector('label').style.display = 'none';
             }
         }
 
-        function shareDashboardPublicLink() {
-            const finalUrl = currentActiveCloudUrl || localStorage.getItem('suncity_saved_cloud_url') || "";
-            if(!finalUrl) {
-                alert("Pehle Cloud Mode select karke apni file connect kijiye, uske baad hi share link generate hoga.");
-                return;
-            }
-            const sharedAppPath = window.location.origin + window.location.pathname + "?shared=true&feedUrl=" + encodeURIComponent(finalUrl);
-            navigator.clipboard.writeText(sharedAppPath);
-            alert("🚀 Live Dashboard Share Link Copied!\nNow you can share.");
-        }
+        
 
         function openSecuritySettingsModal() {
             document.getElementById('securitySettingsModal').classList.remove('hidden');
@@ -430,6 +417,9 @@ document.querySelector('label').style.display = 'none';
 
         function commitSystemConfigurationsUpdates() {
             const newTitle = document.getElementById('cfgCompanyBrandingInput').value.trim();
+            const browsePass = document.getElementById('cfgBrowsePasswordInput').value.trim();
+            if(browsePass){ localStorage.setItem('browse_file_pass', browsePass); }
+
             const newPass = document.getElementById('cfgSystemPasswordInput').value.trim();
             const confirmPass = document.getElementById('cfgSystemPasswordConfirmInput').value.trim();
             
@@ -559,6 +549,20 @@ document.querySelector('label').style.display = 'none';
             document.getElementById('cntAll').innerText = filteredList.length;
         }
 
+
+        function verifyBrowsePassword(event) {
+            const enteredPass = prompt("Enter Browse File Password");
+            const browsePass = localStorage.getItem('browse_file_pass') || "1234";
+
+            if (enteredPass !== browsePass) {
+                alert("Wrong Password!");
+                event.target.value = "";
+                return;
+            }
+
+            importSpreadsheetFile(event);
+        }
+
         function importSpreadsheetFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -618,7 +622,7 @@ document.querySelector('label').style.display = 'none';
                     <div class="flex items-center space-x-3">
                         <img src="${logoSrc}" class="h-12 w-auto object-contain">
                         <div>
-                            <h2 class="text-lg font-black tracking-tight uppercase text-slate-900">${escapeHtml(brandingText)}</h2>
+                            <h2 class="text-lg font-black tracking-tight uppercase"><span style="color:#E31E24;">Suncity</span><span style="color:#0973BA;"> Metals & Tubes Pvt. Ltd.</span></h2>
                             <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">IT Asset Allocation Acknowledgement Form</p>
                             <p style="font-size:10px;color:#555;margin-top:4px;">Plot No. 503/2, 520/P2, Village Gundala, Mundra Kachchh, Gujarat, India, Pincode-370421</p>
                         </div>
