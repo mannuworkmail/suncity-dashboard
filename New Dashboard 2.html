@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Suncity Metals & Tubes Pvt. Ltd. - Advanced IT Hub</title>
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SheetJS Excel Parse Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        .glow-select {
+            border: 2px solid #0973BA !important;
+            box-shadow: 0 0 8px rgba(9, 115, 186, 0.2);
+            transition: all 0.3s ease-in-out;
+            outline: none;
+        }
+        .glow-select:focus, .glow-select:hover {
+            border-color: #E31E24 !important;
+            box-shadow: 0 0 14px rgba(227, 30, 36, 0.4);
+        }
+        
+        /* Strict Layout For Printing A4 */
+        .print-row { display: flex; flex-direction: row; width: 100%; gap: 12px; margin-bottom: 8px; }
+        .print-col-4 { width: 25%; }
+        .print-col-3 { width: 33.333%; }
+
+        /* DARK MODE STYLING OVERRIDES (Will not affect Print) */
+        body.dark-mode { background-color: #0f172a; color: #cbd5e1; }
+        .dark-mode .bg-white { background-color: #1e293b !important; color: #f1f5f9 !important; border-color: #334155 !important; }
+        .dark-mode select, .dark-mode input { background-color: #334155 !important; color: #fff !important; border-color: #475569 !important; }
+        .dark-mode th { background-color: #334155 !important; color: #f8fafc !important; }
+        .dark-mode td { color: #cbd5e1 !important; border-color: #334155 !important; }
+
+        @media print {
+            @page { size: A4; margin: 12mm 15mm 12mm 15mm; }
+            * { background: transparent !important; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-shadow: none !important; }
+            body, html { background: white !important; color: black !important; font-size: 11px !important; }
+            .no-print, header, aside, .class-filters-card, button, select { display: none !important; height: 0 !important; overflow: hidden !important; }
+            #tabView-formView { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print-page-break { page-break-after: always; break-after: page; display: block !important; }
+            .print-window-box { padding: 15px !important; max-width: 100% !important; border: 1px solid #cbd5e1 !important; border-radius: 16px !important; background: #fff !important; }
+            .print-row { display: flex !important; flex-direction: row !important; width: 100% !important; gap: 12px !important; }
+            .print-col-4 { width: 25% !important; }
+            .print-col-3 { width: 33.333% !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased transition-colors duration-200">
+
+    <!-- MASTER CONTROL HEADER (FIXED TOP & CENTERED TITLE) -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-md sticky top-0 z-40 no-print">
+        
+        <!-- BRAND LOGO ZONE (LARGER SIZE & NO IT HUB BADGE) -->
+        <div class="flex items-center w-1/4">
+            <img id="companyLogoImage" src="LOGO Suncity.jpeg" alt="Logo" class="h-20 w-auto object-contain" onerror="this.src='https://placehold.co/180x65?text=Suncity+Logo'">
+        </div>
+
+        <!-- CORPORATE TEXT HEADLINE (CENTER FIXED) -->
+        <div class="text-center flex-1 justify-center">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight leading-none">
+                <span id="titlePartRed" style="color: #E31E24;">Suncity</span> 
+                <span id="titlePartBlue" style="color: #0973BA;">Metals & Tubes Pvt. Ltd.</span>
+            </h1>
+            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1">💻 SECURE CLOUD HUB & PROFILE TERMINAL</p>
+        </div>
+
+        <!-- GLOBAL SETTINGS ONLY IN HEADER -->
+        <div class="w-1/4 flex justify-end">
+            <button onclick="openSecuritySettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition">
+                ⚙️ Settings
+            </button>
+        </div>
+    </header>
+
+    <!-- LIVE WORKSPACE PANELS -->
+    <div class="flex h-[calc(100vh-89px)] overflow-hidden">
+        
+        <!-- PERSISTENT SIDEBAR CONTROL (CONTROLS MOVED HERE) -->
+        <aside class="w-72 bg-slate-900 text-slate-300 p-4 flex flex-col justify-between no-print shadow-2xl shrink-0 overflow-y-auto">
+            <div class="space-y-5">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-2">Navigation Links</p>
+                    <nav class="space-y-1">
+                        <button onclick="changeActiveTab('dashboard')" id="btn-tab-dashboard" class="w-full text-left py-2.5 px-3 rounded-xl bg-blue-600 text-white font-semibold text-xs flex items-center space-x-2 transition">
+                            <span>📊</span> <span>Live Master Dashboard</span>
+                        </button>
+                        <button onclick="changeActiveTab('formView')" id="btn-tab-formView" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center space-x-2 transition mb-4">
+                            <span>📄</span> <span>User Profile Slip Form</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <hr class="border-slate-800 my-2">
+
+                <!-- SIDEBAR CONTROLS ZONE -->
+                <div class="space-y-4 pt-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Dashboard Controls</p>
+                    
+                    <!-- Dark Mode Switch -->
+                    <button onclick="toggleDarkModeTheme()" class="w-full bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl transition text-xs font-bold text-left flex items-center space-x-2 shadow-xs">
+                        <span id="themeToggleIcon">🌙 Dark Mode</span>
+                    </button>
+
+                    <!-- Storage Mode Selection Dropdown -->
+                    <div class="flex flex-col">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 px-1">Data Import Source</label>
+                        <select id="storageSourceEngine" onchange="toggleStorageModeInterface()" class="bg-slate-800 border border-slate-700 text-white font-bold text-xs p-2.5 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="offline">📂 Local Offline File (PC)</option>
+                            <option value="cloud">☁️ Live Cloud Base Link</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic File Upload -->
+                    <div id="localUploadWrapperZone">
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl cursor-pointer shadow-xs text-center block w-full transition">
+                            📥 Browse Excel File
+                            <input type="file" accept=".xlsx, .xls" class="hidden" onchange="importSpreadsheetFile(event)">
+                        </label>
+                    </div>
+
+                    <!-- Dynamic Cloud URL Linker Box -->
+                    <div id="cloudUrlInputWrapperZone" class="hidden space-y-2">
+                        <input type="text" id="dashboardCloudUrlField" placeholder="Paste Google Sheet XLSX Link" class="w-full border border-slate-700 bg-slate-800 text-white rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button onclick="saveCloudUrlAndFetchData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs">Connect Sheet</button>
+                    </div>
+
+                    <!-- Permanent Share Button -->
+                    <button id="btnShareDashboardLink" onclick="shareDashboardPublicLink()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-xs transition flex items-center justify-center space-x-2">
+                        <span>🔗</span> <span>Share Dashboard Link</span>
+                    </button>
+
+                    <!-- Cloud Feed Refresh Button -->
+                    <div id="sidebarRefreshSection" class="hidden">
+                        <button onclick="fetchDataFromCloudEngineDirect()" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-md transition flex items-center justify-center space-x-1">
+                            <span>🔄</span> <span>Refresh Cloud Feed</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+          
+            <div class="text-[11px] text-slate-500 border-t border-slate-800 pt-3 font-medium mt-4">
+                <p>System Admin Matrix:</p>
+                <p class="text-indigo-400 font-bold mt-0.5">By Mannu (IT Mundra)</p>
+            </div>
+        </aside>
+
+        <!-- VIEWSPACE STAGE CONTAINER -->
+        <main class="flex-1 overflow-y-auto p-6" id="mainContentView">
+            
+            <!-- TAB 1: DATA MASTER BOARD -->
+            <div id="tabView-dashboard" class="space-y-6">
+                
+                <div class="bg-gradient-to-r from-slate-900 to-blue-950 p-6 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-black flex items-center space-x-2"><span>🛡️</span> <span id="bannerCompanyLabel">Suncity Corporate IT Terminal</span></h2>
+                        <p class="text-xs text-indigo-200 mt-1 font-medium" id="cloudStatusText">Status: Operating Local Session Ledger</p>
+                    </div>
+                    <div class="bg-white/10 px-5 py-2.5 rounded-xl text-center min-w-[180px]">
+                        <span class="text-[10px] uppercase font-bold text-indigo-300 block tracking-wider">Total Active Assets</span>
+                        <span class="text-2xl font-black text-white" id="cntAll">0</span>
+                    </div>
+                </div>
+
+                <!-- ADAPTIVE FILTER SECTORS -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 class-filters-card">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-blue-600">👤 Filter User Name</label>
+                            <select id="filterUser" onchange="syncFiltersAndRender('user')" class="glow-select w-full bg-slate-50 text-xs font-bold p-2.5 rounded-xl"></select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-emerald-600">🏢 Filter Department</label>
+                            <select id="filterDept" onchange="syncFiltersAndRender('dept')" class="glow-select w-full bg-slate-50 text-xs font-bold p-2.5 rounded-xl"></select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-amber-600">📍 Filter Location</label>
+                            <select id="filterLocation" onchange="syncFiltersAndRender('location')" class="glow-select w-full bg-slate-50 text-xs font-bold p-2.5 rounded-xl"></select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold uppercase text-purple-600">🎖️ Filter Designation</label>
+                            <select id="filterDesignation" onchange="syncFiltersAndRender('designation')" class="glow-select w-full bg-slate-50 text-xs font-bold p-2.5 rounded-xl"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE REGISTRY GRID TABLE -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-800 text-slate-200 uppercase font-bold border-b border-slate-300">
+                                    <th class="p-3.5 pl-4">Device Name</th>
+                                    <th class="p-3.5">User Name</th>
+                                    <th class="p-3.5">Emp Code</th>
+                                    <th class="p-3.5">Department</th>
+                                    <th class="p-3.5">Designation</th>
+                                    <th class="p-3.5">Location</th>
+                                    <th class="p-3.5 pr-4">Asset Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBody" class="divide-y divide-slate-100 font-semibold">
+                                <!-- Data Rows Inject Dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: IDENTITY PROFILE ALLOCATION FORMS -->
+            <div id="tabView-formView" class="hidden max-w-4xl mx-auto space-y-6">
+                <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between no-print shadow-xs">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-xs font-bold text-slate-600">Select Profile Record Sheet:</label>
+                        <select id="formUserSelector" onchange="loadUserProfileForm(this.value)" class="border rounded px-3 py-1 bg-slate-50 text-xs font-bold text-slate-800"></select>
+                    </div>
+                    <button onclick="triggerSingleFormPrint()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-md transition">
+                        🖨️ Print Form Slip (A4)
+                    </button>
+                </div>
+                <div id="printFormArea" class="space-y-6"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PASSWORD CONTROLLED SETTINGS MODAL DIALOG (WITH DOUBLE PASSWORD CONFIRMATION) -->
+    <div id="securitySettingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center hidden z-50 no-print">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-1">🛠️ Secure Core Settings</h3>
+                <button onclick="closeSecuritySettingsModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+
+            <!-- Password Unlock Stage -->
+            <div id="settingsAuthBarrierGate" class="space-y-3">
+                <p class="text-xs text-slate-500">Please authenticate with the Admin Master Password to alter configurations:</p>
+                <input type="password" id="adminGatePasswordField" placeholder="Enter Admin Password" class="w-full border rounded-xl p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-slate-900">
+                <button onclick="verifyAdminAuthorizationCredentials()" class="w-full bg-slate-900 text-white font-bold text-xs py-2 rounded-xl">Unlock Panel</button>
+            </div>
+
+            <!-- Protected Options Menu Stage -->
+            <div id="settingsContentFormPanel" class="hidden space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Change Company Branding Title</label>
+                    <input type="text" id="cfgCompanyBrandingInput" placeholder="Ex: Suncity Metals & Tubes Pvt. Ltd." class="w-full border rounded-xl p-2 text-xs font-bold">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">New Master Password</label>
+                    <input type="password" id="cfgSystemPasswordInput" placeholder="Enter New Password" class="w-full border rounded-xl p-2 text-xs font-mono">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Confirm New Master Password</label>
+                    <input type="password" id="cfgSystemPasswordConfirmInput" placeholder="Retype New Password" class="w-full border rounded-xl p-2 text-xs font-mono">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Update Corporate Logo Image</label>
+                    <input type="file" accept="image/*" onchange="updateSystemLogoConfigurationFile(event)" class="w-full text-xs">
+                </div>
+                <button onclick="commitSystemConfigurationsUpdates()" class="w-full bg-blue-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-md">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC MANAGEMENT ENGINE SCRIPT -->
+    <script>
+        let masterAssetMemory = [];
+        let systemAdminPassword = "admin123";
+        let currentActiveCloudUrl = "";
+
+        window.onload = function() {
+            if(localStorage.getItem('sc_cfg_pass')) systemAdminPassword = localStorage.getItem('sc_cfg_pass');
+            if(localStorage.getItem('sc_cfg_title')) applyCompanyBrandingTitle(localStorage.getItem('sc_cfg_title'));
+            if(localStorage.getItem('suncity_logo_b64')) document.getElementById('companyLogoImage').src = localStorage.getItem('suncity_logo_b64');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedCloudLink = urlParams.get('feedUrl');
+            
+            if(sharedCloudLink) {
+                currentActiveCloudUrl = decodeURIComponent(sharedCloudLink);
+                document.getElementById('storageSourceEngine').value = "cloud";
+                document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
+                toggleStorageModeInterface();
+                fetchDataFromCloudEngineDirect();
+            } else {
+                if(localStorage.getItem('suncity_master_cloud_v6')) {
+                    masterAssetMemory = JSON.parse(localStorage.getItem('suncity_master_cloud_v6'));
+                }
+                if(localStorage.getItem('suncity_saved_cloud_url')) {
+                    currentActiveCloudUrl = localStorage.getItem('suncity_saved_cloud_url');
+                    document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
+                }
+                rebuildIntelligentFilters('all');
+                syncFiltersAndRender();
+            }
+        };
+
+        function toggleDarkModeTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const icon = document.getElementById('themeToggleIcon');
+            if(body.classList.contains('dark-mode')) {
+                icon.innerText = "☀️ Light Mode";
+            } else {
+                icon.innerText = "🌙 Dark Mode";
+            }
+        }
+
+        function toggleStorageModeInterface() {
+            const mode = document.getElementById('storageSourceEngine').value;
+            if(mode === 'offline') {
+                document.getElementById('localUploadWrapperZone').classList.remove('hidden');
+                document.getElementById('cloudUrlInputWrapperZone').classList.add('hidden');
+                document.getElementById('sidebarRefreshSection').classList.add('hidden');
+            } else {
+                document.getElementById('localUploadWrapperZone').classList.add('hidden');
+                document.getElementById('cloudUrlInputWrapperZone').classList.remove('hidden');
+                if(currentActiveCloudUrl) document.getElementById('sidebarRefreshSection').classList.remove('hidden');
+            }
+        }
+
+        function saveCloudUrlAndFetchData() {
+            const givenUrl = document.getElementById('dashboardCloudUrlField').value.trim();
+            if(!givenUrl) { alert("Please input a valid published Google Sheet XLSX Link first!"); return; }
+            currentActiveCloudUrl = givenUrl;
+            localStorage.setItem('suncity_saved_cloud_url', givenUrl);
+            fetchDataFromCloudEngineDirect();
+        }
+
+        async function fetchDataFromCloudEngineDirect() {
+            if(!currentActiveCloudUrl) return;
+            document.getElementById('cloudStatusText').innerText = "Status: Connecting Cloud Sheet Ledger Engine...";
+            
+            try {
+                const res = await fetch(currentActiveCloudUrl);
+                if(!res.ok) throw new Error("Connection failed");
+                const buf = await res.arrayBuffer();
+                const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+                
+                let parseBucket = [];
+                const mat = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                
+                mat.forEach((columns, index) => {
+                    if(index > 5 && columns.length >= 4 && columns[3]) {
+                        parseBucket.push({
+                            srNo: String(columns[0] || index - 5), deviceName: String(columns[1] || '').trim(),
+                            oldDeviceName: String(columns[2] || '').trim(), userName: String(columns[3] || '').trim(),
+                            empCode: String(columns[4] || '').trim(), dept: String(columns[5] || '').trim(),
+                            desig: String(columns[6] || '').trim(), personalMob: String(columns[7] || '').trim(),
+                            companyMob: String(columns[8] || '').trim(), mailId: String(columns[9] || '').trim(),
+                            location: String(columns[10] || '').trim(), assetType: String(columns[11] || '').trim(),
+                            brand: String(columns[12] || '').trim(), model: String(columns[13] || '').trim(),
+                            serial: String(columns[14] || '').trim(), processor: String(columns[15] || '').trim(),
+                            ram: String(columns[16] || '').trim(), storage: String(columns[17] || '').trim(),
+                            os: String(columns[18] || '').trim(), monitor: String(columns[19] || '').trim(),
+                            monitorModel: String(columns[20] || '').trim(), monitorSerial: String(columns[21] || '').trim(),
+                            mouseMake: String(columns[22] || '').trim(), mouseModel: String(columns[23] || '').trim(),
+                            mouseSerial: String(columns[24] || '').trim(), keyboardMake: String(columns[25] || '').trim(),
+                            keyboardModel: String(columns[26] || '').trim(), keyboardSerial: String(columns[27] || '').trim(),
+                            upsMake: String(columns[28] || '').trim(), upsModel: String(columns[29] || '').trim(),
+                            upsSerial: String(columns[30] || '').trim(), printerMake: String(columns[31] || '').trim(),
+                            printerModel: String(columns[32] || '').trim(), printerSerial: String(columns[33] || '').trim(),
+                            barcodeMake: String(columns[34] || '').trim(), barcodeModel: String(columns[35] || '').trim(),
+                            barcodeSerial: String(columns[36] || '').trim()
+                        });
+                    }
+                });
+
+                if(parseBucket.length > 0) {
+                    masterAssetMemory = parseBucket;
+                    localStorage.setItem('suncity_master_cloud_v6', JSON.stringify(masterAssetMemory));
+                    document.getElementById('cloudStatusText').innerText = "Status: Cloud Synced Live! (" + parseBucket.length + " Records Onboard)";
+                    document.getElementById('sidebarRefreshSection').classList.remove('hidden');
+                    rebuildIntelligentFilters('all');
+                    syncFiltersAndRender('all');
+                } else { alert("Data structure row mapping mismatch inside Sheet."); }
+            } catch(ex) {
+                document.getElementById('cloudStatusText').innerText = "Status: Connection Error. Displaying Cached Memory Ledger.";
+                console.error(ex);
+            }
+        }
+
+        function shareDashboardPublicLink() {
+            const finalUrl = currentActiveCloudUrl || localStorage.getItem('suncity_saved_cloud_url') || "";
+            if(!finalUrl) {
+                alert("Pehle Cloud Mode select karke apni file connect kijiye, uske baad hi share link generate hoga.");
+                return;
+            }
+            const sharedAppPath = window.location.origin + window.location.pathname + "?feedUrl=" + encodeURIComponent(finalUrl);
+            navigator.clipboard.writeText(sharedAppPath);
+            alert("🚀 Live Dashboard Share Link Copied!\nAap ise kisi ko bhi bhej sakte hain.");
+        }
+
+        function openSecuritySettingsModal() {
+            document.getElementById('securitySettingsModal').classList.remove('hidden');
+            document.getElementById('settingsAuthBarrierGate').classList.remove('hidden');
+            document.getElementById('settingsContentFormPanel').classList.add('hidden');
+            document.getElementById('adminGatePasswordField').value = "";
+        }
+        function closeSecuritySettingsModal() { document.getElementById('securitySettingsModal').classList.add('hidden'); }
+        
+        function verifyAdminAuthorizationCredentials() {
+            const entered = document.getElementById('adminGatePasswordField').value;
+            if(entered === systemAdminPassword) {
+                document.getElementById('settingsAuthBarrierGate').classList.add('hidden');
+                document.getElementById('settingsContentFormPanel').classList.remove('hidden');
+                document.getElementById('cfgCompanyBrandingInput').value = localStorage.getItem('sc_cfg_title') || "Suncity Metals & Tubes Pvt. Ltd.";
+                document.getElementById('cfgSystemPasswordInput').value = "";
+                document.getElementById('cfgSystemPasswordConfirmInput').value = "";
+            } else { alert("⚠️ Invalid Admin Pass Key! Access Denied."); }
+        }
+
+        function commitSystemConfigurationsUpdates() {
+            const newTitle = document.getElementById('cfgCompanyBrandingInput').value.trim();
+            const newPass = document.getElementById('cfgSystemPasswordInput').value.trim();
+            const confirmPass = document.getElementById('cfgSystemPasswordConfirmInput').value.trim();
+            
+            if(!newTitle) { alert("Company name blank nahi ho sakta!"); return; }
+            
+            if(newPass || confirmPass) {
+                if(newPass !== confirmPass) {
+                    alert("⚠️ Dono naye password match nahi ho rahe hain! Kripya dobara check karein.");
+                    return;
+                }
+                systemAdminPassword = newPass;
+                localStorage.setItem('sc_cfg_pass', newPass);
+            }
+            
+            localStorage.setItem('sc_cfg_title', newTitle);
+            applyCompanyBrandingTitle(newTitle);
+            
+            alert("Configuration Saved Successfully!");
+            closeSecuritySettingsModal();
+        }
+
+        function applyCompanyBrandingTitle(rawTitle) {
+            document.getElementById('pageTitle').innerText = rawTitle + " - Advanced IT Hub";
+            document.getElementById('bannerCompanyLabel').innerText = rawTitle + " IT Control Terminal";
+            
+            const parts = rawTitle.split(' ');
+            if(parts.length > 0) {
+                document.getElementById('titlePartRed').innerText = parts[0];
+                document.getElementById('titlePartBlue').innerText = parts.slice(1).join(' ');
+            }
+        }
+
+        function updateSystemLogoConfigurationFile(event) {
+            const f = event.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('companyLogoImage').src = e.target.result;
+                localStorage.setItem('suncity_logo_b64', e.target.result);
+            };
+            reader.readAsDataURL(f);
+        }
+
+        function rebuildIntelligentFilters(changedType) {
+            const uSelect = document.getElementById('filterUser');
+            const dSelect = document.getElementById('filterDept');
+            const lSelect = document.getElementById('filterLocation');
+            const dgSelect = document.getElementById('filterDesignation');
+            const fSelector = document.getElementById('formUserSelector');
+            
+            const valUser = uSelect.value || 'All';
+            const valDept = dSelect.value || 'All';
+            const valLoc = lSelect.value || 'All';
+            const valDesig = dgSelect.value || 'All';
+
+            let uniqueUsers = [], uniqueDepts = [], uniqueLocs = [], uniqueDesigs = [];
+            masterAssetMemory.forEach(row => {
+                if(row.userName && !uniqueUsers.includes(row.userName.trim())) uniqueUsers.push(row.userName.trim());
+                if(row.dept && !uniqueDepts.includes(row.dept.trim())) uniqueDepts.push(row.dept.trim());
+                if(row.location && !uniqueLocs.includes(row.location.trim())) uniqueLocs.push(row.location.trim());
+                if(row.desig && !uniqueDesigs.includes(row.desig.trim())) uniqueDesigs.push(row.desig.trim());
+            });
+            uniqueUsers.sort(); uniqueDepts.sort(); uniqueLocs.sort(); uniqueDesigs.sort();
+
+            if (changedType === 'all' || changedType !== 'user') {
+                uSelect.innerHTML = '<option value="All">-- All Users --</option>';
+                fSelector.innerHTML = '';
+                uniqueUsers.forEach(u => {
+                    uSelect.innerHTML += `<option value="${u}">${u}</option>`;
+                    fSelector.innerHTML += `<option value="${u}">${u}</option>`;
+                });
+                uSelect.value = uniqueUsers.includes(valUser) ? valUser : 'All';
+            }
+            if (changedType === 'all' || changedType === 'user') {
+                dSelect.innerHTML = '<option value="All">-- All Departments --</option>';
+                uniqueDepts.forEach(d => { dSelect.innerHTML += `<option value="${d}">${d}</option>`; });
+                dSelect.value = uniqueDepts.includes(valDept) ? valDept : 'All';
+            }
+            if (changedType === 'all' || changedType === 'dept' || changedType === 'user') {
+                lSelect.innerHTML = '<option value="All">-- All Locations --</option>';
+                uniqueLocs.forEach(l => { lSelect.innerHTML += `<option value="${l}">${l}</option>`; });
+                lSelect.value = uniqueLocs.includes(valLoc) ? valLoc : 'All';
+            }
+            if (changedType === 'all' || changedType === 'dept' || changedType === 'user') {
+                dgSelect.innerHTML = '<option value="All">-- All Designations --</option>';
+                uniqueDesigs.forEach(dg => { dgSelect.innerHTML += `<option value="${dg}">${dg}</option>`; });
+                dgSelect.value = uniqueDesigs.includes(valDesig) ? valDesig : 'All';
+            }
+        }
+
+        function syncFiltersAndRender(changedType) {
+            if (changedType) rebuildIntelligentFilters(changedType);
+            
+            const selUser = document.getElementById('filterUser').value;
+            const selDept = document.getElementById('filterDept').value;
+            const selLoc = document.getElementById('filterLocation').value;
+            const selDesig = document.getElementById('filterDesignation').value;
+
+            const filteredList = masterAssetMemory.filter(item => {
+                const flagUser = (selUser === 'All' || item.userName.trim() === selUser);
+                const flagDept = (selDept === 'All' || item.dept.trim() === selDept);
+                const flagLoc = (selLoc === 'All' || item.location.trim() === selLoc);
+                const flagDesig = (selDesig === 'All' || (item.desig || '').trim() === selDesig);
+                return flagUser && flagDept && flagLoc && flagDesig;
+            });
+
+            const tbody = document.getElementById('masterTableBody');
+            tbody.innerHTML = "";
+
+            filteredList.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-indigo-50/50 dark:hover:bg-slate-700/50 border-b border-slate-100 transition duration-150 cursor-pointer";
+                tr.onclick = function() { loadUserProfileForm(item.userName); changeActiveTab('formView'); };
+
+                // REMOVED ACCENT BACKGROUND HIGHLIGHT FROM ASSET TYPE ROW
+                tr.innerHTML = `
+                    <td class="p-3.5 pl-4 font-bold">${escapeHtml(item.deviceName)}</td>
+                    <td class="p-3.5 font-bold">${escapeHtml(item.userName)}</td>
+                    <td class="p-3.5 font-mono text-[11px] font-normal">${escapeHtml(item.empCode)}</td>
+                    <td class="p-3.5 text-slate-500">${escapeHtml(item.dept)}</td>
+                    <td class="p-3.5 text-slate-500">${escapeHtml(item.desig || '-')}</td>
+                    <td class="p-3.5 text-slate-500">${escapeHtml(item.location)}</td>
+                    <td class="p-3.5 pr-4"><span class="font-bold text-slate-700 dark:text-slate-300 uppercase">${escapeHtml(item.assetType)}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('cntAll').innerText = filteredList.length;
+        }
+
+        function importSpreadsheetFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const bytes = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(bytes, { type: 'array' });
+                    let temporaryContainer = [];
+                    const jsonMatrix = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                    
+                    jsonMatrix.forEach((columns, index) => {
+                        if(index > 5 && columns.length > 3 && columns[3]) {
+                            temporaryContainer.push({
+                                srNo: String(columns[0] || ''), deviceName: String(columns[1] || '').trim(),
+                                oldDeviceName: String(columns[2] || '').trim(), userName: String(columns[3] || '').trim(),
+                                empCode: String(columns[4] || '').trim(), dept: String(columns[5] || '').trim(),
+                                desig: String(columns[6] || '').trim(), personalMob: String(columns[7] || '').trim(),
+                                companyMob: String(columns[8] || '').trim(), mailId: String(columns[9] || '').trim(),
+                                location: String(columns[10] || '').trim(), assetType: String(columns[11] || '').trim(),
+                                brand: String(columns[12] || '').trim(), model: String(columns[13] || '').trim(),
+                                serial: String(columns[14] || '').trim(), processor: String(columns[15] || '').trim(),
+                                ram: String(columns[16] || '').trim(), storage: String(columns[17] || '').trim(),
+                                os: String(columns[18] || '').trim(), monitor: String(columns[19] || '').trim(),
+                                monitorModel: String(columns[20] || '').trim(), monitorSerial: String(columns[21] || '').trim(),
+                                mouseMake: String(columns[22] || '').trim(), mouseModel: String(columns[23] || '').trim(),
+                                mouseSerial: String(columns[24] || '').trim(), keyboardMake: String(columns[25] || '').trim(),
+                                keyboardModel: String(columns[26] || '').trim(), keyboardSerial: String(columns[27] || '').trim(),
+                                upsMake: String(columns[28] || '').trim(), upsModel: String(columns[29] || '').trim(),
+                                upsSerial: String(columns[30] || '').trim(), printerMake: String(columns[31] || '').trim(),
+                                printerModel: String(columns[32] || '').trim(), printerSerial: String(columns[33] || '').trim(),
+                                barcodeMake: String(columns[34] || '').trim(), barcodeModel: String(columns[35] || '').trim(),
+                                barcodeSerial: String(columns[36] || '').trim()
+                            });
+                        }
+                    });
+                    if(temporaryContainer.length > 0) {
+                        masterAssetMemory = temporaryContainer;
+                        localStorage.setItem('suncity_master_cloud_v6', JSON.stringify(masterAssetMemory));
+                        alert("Successfully processed " + temporaryContainer.length + " System Log Entries!");
+                        rebuildIntelligentFilters('all');
+                        syncFiltersAndRender('all');
+                    }
+                } catch(x) { alert("Parsing Issue: " + x.message); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function buildSingleFormLayoutBlockHtml(record) {
+            const checkNa = (v) => (!v || v === 'NA' || v === 'N/A' || v.toString().trim() === '') ? '<span class="text-slate-400 font-normal">-- Blank --</span>' : `<strong>${escapeHtml(v)}</strong>`;
+            const logoSrc = document.getElementById('companyLogoImage').src;
+            const brandingText = (localStorage.getItem('sc_cfg_title') || "Suncity Metals & Tubes Pvt. Ltd.");
+
+            return `
+            <div class="bg-white p-6 rounded-2xl border border-slate-300 print-window-box print-page-break text-xs text-slate-800 max-w-[820px] mx-auto shadow-sm" style="background-color:#ffffff !important; color:#1e293b !important;">
+                <div class="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <img src="${logoSrc}" class="h-12 w-auto object-contain">
+                        <div>
+                            <h2 class="text-lg font-black tracking-tight uppercase text-slate-900">${escapeHtml(brandingText)}</h2>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">IT Asset Allocation Acknowledgement Form</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-mono font-bold text-slate-900 text-xs">DATE: ${new Date().toLocaleDateString('en-GB')}</p>
+                        <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">CODE: ${escapeHtml(record.empCode || 'NA')}</p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-blue-700 uppercase tracking-widest border-b border-slate-200 pb-0.5 mb-2">👤 Employee Bio-Data</h3>
+                    <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">User Name</p><p class="text-xs text-slate-900">${checkNa(record.userName)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Emp Code</p><p class="font-mono text-xs text-slate-900">${checkNa(record.empCode)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Department</p><p class="text-xs text-slate-900">${checkNa(record.dept)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Designation</p><p class="text-xs text-slate-900">${checkNa(record.desig)}</p></div>
+                    </div>
+                    <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2">
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Personal Mobile</p><p class="font-mono text-slate-900">${checkNa(record.personalMob)}</p></div>
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Company Mobile</p><p class="font-mono text-slate-900">${checkNa(record.companyMob)}</p></div>
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Official Mail ID</p><p class="text-blue-700 font-semibold">${checkNa(record.mailId)}</p></div>
+                    </div>
+                    <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2">
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Office Location</p><p class="text-slate-900">${checkNa(record.location)}</p></div>
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Device ID</p><p class="text-blue-700 font-bold font-mono">${checkNa(record.deviceName)}</p></div>
+                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Old Identity ID</p><p class="text-slate-600 font-mono">${checkNa(record.oldDeviceName)}</p></div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest border-b border-slate-200 pb-0.5 mb-2">💻 Hardware Core Configurations</h3>
+                    <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Asset Category</p><p class="uppercase text-slate-900 font-bold">${checkNa(record.assetType)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Make Brand</p><p class="text-slate-900">${checkNa(record.brand)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Model Slate</p><p class="text-slate-900">${checkNa(record.model)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Hardware Serial</p><p class="font-mono text-rose-600 font-bold">${checkNa(record.serial)}</p></div>
+                    </div>
+                    <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2">
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Processor</p><p class="text-slate-800">${checkNa(record.processor)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">RAM Size</p><p class="text-slate-900">${checkNa(record.ram)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">Storage Hard Disk</p><p class="text-slate-900">${checkNa(record.storage)}</p></div>
+                        <div class="print-col-4"><p class="text-[9px] text-slate-400 font-bold uppercase">OS Platform</p><p class="text-slate-900">${checkNa(record.os)}</p></div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-[10px] font-bold text-amber-700 uppercase tracking-widest border-b border-slate-200 pb-0.5 mb-2">🔌 Peripheral Management Inventory</h3>
+                    <div class="print-row">
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">🖥️ Monitor Unit</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.monitor || '')} ${escapeHtml(record.monitorModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.monitorSerial || 'NA')}</p>
+                        </div>
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">🖱️ Mouse Units</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.mouseMake || '')} ${escapeHtml(record.mouseModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.mouseSerial || 'NA')}</p>
+                        </div>
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">⌨️ Keyboard</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.keyboardMake || '')} ${escapeHtml(record.keyboardModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.keyboardSerial || 'NA')}</p>
+                        </div>
+                    </div>
+                    <div class="print-row mt-2">
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">🔋 UPS Power Box</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.upsMake || '')} ${escapeHtml(record.upsModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.upsSerial || 'NA')}</p>
+                        </div>
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">🖨️ Printer Unit</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.printerMake || '')} ${escapeHtml(record.printerModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.printerSerial || 'NA')}</p>
+                        </div>
+                        <div class="print-col-3 border border-slate-200 p-2.5 rounded-xl bg-slate-50/50">
+                            <p class="font-bold text-[9px] text-slate-500 uppercase border-b border-slate-200 mb-1">🏷️ Barcode Unit</p>
+                            <p class="text-[10px]"><span class="text-slate-400">Model:</span> ${escapeHtml(record.barcodeMake || '')} ${escapeHtml(record.barcodeModel || '')}</p>
+                            <p class="text-[10px] break-all"><span class="text-slate-400">S/N:</span> ${escapeHtml(record.barcodeSerial || 'NA')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between gap-12 pt-8 text-center text-[10px] font-bold text-slate-600">
+                    <div style="width: 45%;"><div class="border-b border-slate-400 h-6"></div><p class="mt-1 uppercase tracking-wider">Assignee Acknowledgment Signature</p></div>
+                    <div style="width: 45%;"><div class="border-b border-slate-400 h-6"></div><p class="mt-1 uppercase tracking-wider">Authorized IT Administrator Signature</p></div>
+                </div>
+            </div>`;
+        }
+
+        function loadUserProfileForm(uName) {
+            document.getElementById('formUserSelector').value = uName;
+            const container = document.getElementById('printFormArea');
+            const targetRec = masterAssetMemory.filter(r => r.userName.trim() === uName.trim())[0];
+            if(targetRec) container.innerHTML = buildSingleFormLayoutBlockHtml(targetRec);
+        }
+
+        function triggerSingleFormPrint() {
+            const currentUName = document.getElementById('formUserSelector').value;
+            const record = masterAssetMemory.filter(r => r.userName.trim() === currentUName.trim())[0];
+            if(!record) return;
+            
+            let pWindow = window.open('', '_blank');
+            let content = `<html><head><title>Print Allocation Form</title>
+            <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
+            <style>
+                @page { size: A4; margin: 12mm 15mm 12mm 15mm; }
+                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+                body { background: white !important; color: black !important; padding: 10px; font-family: sans-serif; }
+                .print-window-box { padding: 15px !important; max-width: 100% !important; border: 1px solid #cbd5e1 !important; border-radius: 16px !important; }
+                .print-row { display: flex !important; flex-direction: row !important; width: 100% !important; gap: 12px !important; margin-bottom: 8px !important; }
+                .print-col-4 { width: 25% !important; }
+                .print-col-3 { width: 33.333% !important; }
+            </style></head><body>` + buildSingleFormLayoutBlockHtml(record) + `</body></html>`;
+            
+            pWindow.document.write(content);
+            pWindow.document.close();
+            setTimeout(() => { pWindow.print(); pWindow.close(); }, 500);
+        }
+
+        function changeActiveTab(targetTab) {
+            ['dashboard', 'formView'].forEach(t => document.getElementById('tabView-' + t).classList.add('hidden'));
+            document.getElementById('tabView-' + targetTab).classList.remove('hidden');
+            if(targetTab === 'formView' && masterAssetMemory.length > 0) {
+                const uSel = document.getElementById('formUserSelector');
+                if(uSel.children.length > 0) loadUserProfileForm(uSel.value);
+            }
+        }
+
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
