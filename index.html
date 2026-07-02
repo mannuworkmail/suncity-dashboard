@@ -289,15 +289,26 @@ document.querySelector('label').style.display = 'none';
             
             const urlParams = new URLSearchParams(window.location.search);
             const encodedSheet = urlParams.get('s');
-const encodedSheet = urlParams.get('s');
-const sharedCloudLink = encodedSheet ? atob(encodedSheet) : urlParams.get('feedUrl');
+let sharedCloudLink = null;
+
+if(encodedSheet){
+    try{
+        sharedCloudLink = atob(encodedSheet);
+    } catch(e){
+        console.log("Decode failed");
+    }
+}
+
+if(!sharedCloudLink){
+    sharedCloudLink = urlParams.get('feedUrl');
+}
             
             if(!sharedCloudLink){
     currentActiveCloudUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKtrka4vOj91ieEQ2gsD70CTMevbvloIdeX7b2GibykQJ-qbgL-anNjiLBm2jr4TOZex07YpnHLcMH/pub?output=xlsx";
 }
             
             if(sharedCloudLink) {
-                currentActiveCloudUrl = decodeURIComponent(sharedCloudLink);
+                currentActiveCloudUrl = sharedCloudLink;
                 document.getElementById('storageSourceEngine').value = "cloud";
                 document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
                 toggleStorageModeInterface();
