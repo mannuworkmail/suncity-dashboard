@@ -389,7 +389,7 @@
                 alert("Pehle Cloud Mode select karke apni file connect kijiye, uske baad hi share link generate hoga.");
                 return;
             }
-            const sharedAppPath = window.location.origin + window.location.pathname + "?feedUrl=" + encodeURIComponent(finalUrl);
+            const sharedAppPath = window.location.origin + window.location.pathname;
             navigator.clipboard.writeText(sharedAppPath);
             alert("🚀 Live Dashboard Share Link Copied!\nAap ise kisi ko bhi bhej sakte hain.");
         }
