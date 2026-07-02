@@ -68,7 +68,7 @@
 
         <!-- GLOBAL SETTINGS ONLY IN HEADER -->
         <div class="w-1/4 flex justify-end">
-            <button id="settingsOpenBtn" onclick="openSecuritySettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition">
+            <button onclick="openSecuritySettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition">
                 ⚙️ Settings
             </button>
         </div>
@@ -85,12 +85,12 @@
                     <nav class="space-y-1">
                         <button onclick="changeActiveTab('dashboard');document.getElementById('btn-tab-formView').classList.remove('bg-blue-600');document.getElementById('btn-tab-dashboard').classList.add('bg-blue-600');"
 id="btn-tab-dashboard"
-class="bg-blue-600 w-full text-left py-2.5 px-3 rounded-xl text-white font-semibold text-xs flex items-center space-x-2 transition">
+class="bg-blue-600 w-full text-left py-2.5 px-3 rounded-xl ..." bg-blue-600 text-white font-semibold text-xs flex items-center space-x-2 transition">
                             <span>📊</span> <span>Live Master Dashboard</span>
                         </button>
                         <button onclick="changeActiveTab('formView');document.getElementById('btn-tab-dashboard').classList.remove('bg-blue-600');document.getElementById('btn-tab-formView').classList.add('bg-blue-600');"
 id="btn-tab-formView"
-class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center space-x-2 transition mb-4">
+class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center space-x-2 transition mb-4">
                             <span>📄</span> <span>User Profile Slip Form</span>
                         </button>
                     </nav>
@@ -138,7 +138,7 @@ class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-400
                     <!-- Cloud Feed Refresh Button -->
                     <div id="sidebarRefreshSection" class="hidden">
                         <button onclick="fetchDataFromCloudEngineDirect()" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-md transition flex items-center justify-center space-x-1">
-                            <span>🔄</span> <span>Update Dashboard</span>
+                            <span>🔄</span> <span>Refresh Cloud Feed</span>
                         </button>
                     </div>
                 </div>
@@ -274,48 +274,32 @@ class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-400
 
         window.onload = function() {
             const urlParamsShared = new URLSearchParams(window.location.search);
-const isSharedMode = urlParamsShared.get('shared') === 'true' || urlParamsShared.get('s') !== null;
+const isSharedMode = urlParamsShared.get('shared') === 'true';
 
 if(isSharedMode){
     document.getElementById('storageSourceEngine').style.display = 'none';
 document.getElementById('cloudUrlInputWrapperZone').style.display = 'none';
 document.getElementById('btnShareDashboardLink').style.display = 'none';
 document.getElementById('settingsOpenBtn').style.display = 'none';
-document.getElementById('localUploadWrapperZone').style.display = 'none';
+document.querySelector('label').style.display = 'none';
 }
             if(localStorage.getItem('sc_cfg_pass')) systemAdminPassword = localStorage.getItem('sc_cfg_pass');
             if(localStorage.getItem('sc_cfg_title')) applyCompanyBrandingTitle(localStorage.getItem('sc_cfg_title'));
             if(localStorage.getItem('suncity_logo_b64')) document.getElementById('companyLogoImage').src = localStorage.getItem('suncity_logo_b64');
             
             const urlParams = new URLSearchParams(window.location.search);
-            const encodedSheet = urlParams.get('s');
-let sharedCloudLink = null;
-
-if(encodedSheet){
-    try{
-        sharedCloudLink = atob(encodedSheet);
-    } catch(e){
-        console.log("Decode failed");
-    }
-}
-
-if(!sharedCloudLink){
-    sharedCloudLink = urlParams.get('feedUrl');
-}
+            const sharedCloudLink = urlParams.get('feedUrl');
             
             if(!sharedCloudLink){
     currentActiveCloudUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKtrka4vOj91ieEQ2gsD70CTMevbvloIdeX7b2GibykQJ-qbgL-anNjiLBm2jr4TOZex07YpnHLcMH/pub?output=xlsx";
 }
             
             if(sharedCloudLink) {
-                currentActiveCloudUrl = sharedCloudLink;
+                currentActiveCloudUrl = decodeURIComponent(sharedCloudLink);
                 document.getElementById('storageSourceEngine').value = "cloud";
                 document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
                 toggleStorageModeInterface();
                 fetchDataFromCloudEngineDirect();
-                setInterval(() => {
-    fetchDataFromCloudEngineDirect();
-}, 30000);
             } else {
                 if(localStorage.getItem('suncity_master_cloud_v6')) {
                     masterAssetMemory = JSON.parse(localStorage.getItem('suncity_master_cloud_v6'));
@@ -420,10 +404,9 @@ if(!sharedCloudLink){
                 alert("Pehle Cloud Mode select karke apni file connect kijiye, uske baad hi share link generate hoga.");
                 return;
             }
-            const sheetId = btoa(finalUrl);
-const sharedAppPath = window.location.origin + window.location.pathname + "?s=" + sheetId;
+            const sharedAppPath = window.location.origin + window.location.pathname + "?shared=true&feedUrl=" + encodeURIComponent(finalUrl);
             navigator.clipboard.writeText(sharedAppPath);
-            alert("🚀 Live Dashboard Share Link Copied!\nAap ise kisi ko bhi bhej sakte hain.");
+            alert("🚀 Live Dashboard Share Link Copied!\nNow you can share.");
         }
 
         function openSecuritySettingsModal() {
@@ -635,10 +618,7 @@ const sharedAppPath = window.location.origin + window.location.pathname + "?s=" 
                     <div class="flex items-center space-x-3">
                         <img src="${logoSrc}" class="h-12 w-auto object-contain">
                         <div>
-                            <h2 class="text-lg font-black tracking-tight uppercase">
-    <span style="color:red;">Suncity</span>
-    <span style="color:#1565C0;">Metals & Tubes Pvt. Ltd.</span>
-</h2>
+                            <h2 class="text-lg font-black tracking-tight uppercase text-slate-900">${escapeHtml(brandingText)}</h2>
                             <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">IT Asset Allocation Acknowledgement Form</p>
                             <p style="font-size:10px;color:#555;margin-top:4px;">Plot No. 503/2, 520/P2, Village Gundala, Mundra Kachchh, Gujarat, India, Pincode-370421</p>
                         </div>
