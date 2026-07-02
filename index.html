@@ -278,10 +278,10 @@ const isSharedMode = urlParamsShared.get('shared') === 'true';
 
 if(isSharedMode){
     document.getElementById('storageSourceEngine').style.display = 'none';
-    document.getElementById('dashboardCloudUrlField').style.display = 'none';
-    document.getElementById('connectSheetBtn').style.display = 'none';
-    document.getElementById('shareDashboardBtn').style.display = 'none';
-    document.getElementById('settingsOpenBtn').style.display = 'none';
+document.getElementById('cloudUrlInputWrapperZone').style.display = 'none';
+document.getElementById('btnShareDashboardLink').style.display = 'none';
+document.getElementById('securitySettingsModal').style.display = 'none';
+document.querySelector('label').style.display = 'none';
 }
             if(localStorage.getItem('sc_cfg_pass')) systemAdminPassword = localStorage.getItem('sc_cfg_pass');
             if(localStorage.getItem('sc_cfg_title')) applyCompanyBrandingTitle(localStorage.getItem('sc_cfg_title'));
