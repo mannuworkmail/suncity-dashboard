@@ -273,6 +273,16 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
         let currentActiveCloudUrl = "";
 
         window.onload = function() {
+            const urlParamsShared = new URLSearchParams(window.location.search);
+const isSharedMode = urlParamsShared.get('shared') === 'true';
+
+if(isSharedMode){
+    document.getElementById('storageSourceEngine').style.display = 'none';
+    document.getElementById('dashboardCloudUrlField').style.display = 'none';
+    document.getElementById('connectSheetBtn').style.display = 'none';
+    document.getElementById('shareDashboardBtn').style.display = 'none';
+    document.getElementById('settingsOpenBtn').style.display = 'none';
+}
             if(localStorage.getItem('sc_cfg_pass')) systemAdminPassword = localStorage.getItem('sc_cfg_pass');
             if(localStorage.getItem('sc_cfg_title')) applyCompanyBrandingTitle(localStorage.getItem('sc_cfg_title'));
             if(localStorage.getItem('suncity_logo_b64')) document.getElementById('companyLogoImage').src = localStorage.getItem('suncity_logo_b64');
@@ -394,7 +404,7 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                 alert("Pehle Cloud Mode select karke apni file connect kijiye, uske baad hi share link generate hoga.");
                 return;
             }
-            const sharedAppPath = window.location.origin + window.location.pathname + "?feedUrl=" + encodeURIComponent(finalUrl);
+            const sharedAppPath = window.location.origin + window.location.pathname + "?shared=true&feedUrl=" + encodeURIComponent(finalUrl);
             navigator.clipboard.writeText(sharedAppPath);
             alert("🚀 Live Dashboard Share Link Copied!\nAap ise kisi ko bhi bhej sakte hain.");
         }
