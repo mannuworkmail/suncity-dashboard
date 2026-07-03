@@ -107,29 +107,7 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                         <span id="themeToggleIcon">🌙 Dark Mode</span>
                     </button>
 
-                    <!-- Storage Mode Selection Dropdown -->
-                    <div class="flex flex-col">
-                        <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 px-1">Data Import Source</label>
-                        <select id="storageSourceEngine" onchange="toggleStorageModeInterface()" class="bg-slate-800 border border-slate-700 text-white font-bold text-xs p-2.5 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="offline">📂 Local Offline File (PC)</option>
-                            <option value="cloud">☁️ Live Cloud Base Link</option>
-                        </select>
-                    </div>
-
-                    <!-- Dynamic File Upload -->
-                    <div id="localUploadWrapperZone">
-                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl cursor-pointer shadow-xs text-center block w-full transition">
-                            📥 Browse Excel File
-                            <input type="file" accept=".xlsx, .xls" class="hidden" onchange="verifyBrowsePassword(event)">
-                        </label>
-                    </div>
-
-                    <!-- Dynamic Cloud URL Linker Box -->
-                    <div id="cloudUrlInputWrapperZone" class="hidden space-y-2">
-                        <input type="text" id="dashboardCloudUrlField" placeholder="Paste Google Sheet XLSX Link" class="w-full border border-slate-700 bg-slate-800 text-white rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-                        <button onclick="saveCloudUrlAndFetchData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs">Connect Sheet</button>
-                    </div>
-
+                    
                     <!-- Cloud Feed Refresh Button -->
                     <div id="sidebarRefreshSection" class="hidden">
                         <button onclick="fetchDataFromCloudEngineDirect()" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-md transition flex items-center justify-center space-x-1">
@@ -260,6 +238,28 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Update Corporate Logo Image</label>
                     <input type="file" accept="image/*" onchange="updateSystemLogoConfigurationFile(event)" class="w-full text-xs">
                 </div>
+<!-- Storage Mode Selection Dropdown -->
+                    <div class="flex flex-col">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 px-1">Data Import Source</label>
+                        <select id="storageSourceEngine" onchange="toggleStorageModeInterface()" class="bg-slate-800 border border-slate-700 text-white font-bold text-xs p-2.5 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="offline">📂 Local Offline File (PC)</option>
+                            <option value="cloud">☁️ Live Cloud Base Link</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic File Upload -->
+                    <div id="localUploadWrapperZone">
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl cursor-pointer shadow-xs text-center block w-full transition">
+                            📥 Browse Excel File
+                            <input type="file" accept=".xlsx, .xls" class="hidden" onchange="verifyBrowsePassword(event)">
+                        </label>
+                    </div>
+
+                    <!-- Dynamic Cloud URL Linker Box -->
+                    <div id="cloudUrlInputWrapperZone" class="hidden space-y-2">
+                        <input type="text" id="dashboardCloudUrlField" placeholder="Paste Google Sheet XLSX Link" class="w-full border border-slate-700 bg-slate-800 text-white rounded-xl p-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button onclick="saveCloudUrlAndFetchData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-xs">Connect Sheet</button>
+                    </div>
                 <button onclick="commitSystemConfigurationsUpdates()" class="w-full bg-blue-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-md">Save Changes</button>
             </div>
         </div>
@@ -287,7 +287,12 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
             if(sharedCloudLink) {
                 currentActiveCloudUrl = decodeURIComponent(sharedCloudLink);
                 document.getElementById('storageSourceEngine').value = "cloud";
-                document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
+
+                const cloudInput = document.getElementById('dashboardCloudUrlField');
+if (cloudInput) {
+    cloudInput.value = currentActiveCloudUrl;
+}
+
                 toggleStorageModeInterface();
                 fetchDataFromCloudEngineDirect();
             } else {
@@ -296,8 +301,13 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                 }
                 if(localStorage.getItem('suncity_saved_cloud_url')) {
                     currentActiveCloudUrl = localStorage.getItem('suncity_saved_cloud_url');
-                    document.getElementById('dashboardCloudUrlField').value = currentActiveCloudUrl;
+
+                    const cloudInput = document.getElementById('dashboardCloudUrlField');
+if (cloudInput) {
+    cloudInput.value = currentActiveCloudUrl;
+}
                 }
+
                 rebuildIntelligentFilters('all');
                 syncFiltersAndRender();
             }
@@ -334,15 +344,34 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
         }
 
         function saveCloudUrlAndFetchData() {
-            const givenUrl = document.getElementById('dashboardCloudUrlField').value.trim();
-            if(!givenUrl) { alert("Please input a valid published Google Sheet XLSX Link first!"); return; }
-            currentActiveCloudUrl = givenUrl;
-            localStorage.setItem('suncity_saved_cloud_url', givenUrl);
-            fetchDataFromCloudEngineDirect();
-        }
+    const cloudField = document.getElementById('dashboardCloudUrlField');
+
+    if (!cloudField) {
+        alert("Cloud URL field not found!");
+        return;
+    }
+
+    const givenUrl = cloudField.value.trim();
+
+    if (!givenUrl) {
+        alert("Please input a valid Google Sheet XLSX Link first!");
+        return;
+    }
+
+    currentActiveCloudUrl = givenUrl;
+    localStorage.setItem('suncity_saved_cloud_url', givenUrl);
+
+    fetchDataFromCloudEngineDirect();
+}
 
         async function fetchDataFromCloudEngineDirect() {
-            if(!currentActiveCloudUrl) return;
+
+            if (!currentActiveCloudUrl || currentActiveCloudUrl.trim() === "") {
+    document.getElementById('cloudStatusText').innerText =
+        "Status: No Cloud URL Configured.";
+    return;
+}
+
             document.getElementById('cloudStatusText').innerText = "Status: Connecting Cloud Sheet Ledger Engine...";
             
             try {
@@ -649,8 +678,6 @@ class="w-full text-left py-2.5 px-3 rounded-xl ..." hover:bg-slate-800 text-slat
                     <div class="print-row bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2">
                         <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Office Location</p><p class="text-slate-900">${checkNa(record.location)}</p></div>
                         <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Device ID</p><p class="text-blue-700 font-bold font-mono">${checkNa(record.deviceName)}</p></div>
-                        <div class="print-col-3"><p class="text-[9px] text-slate-400 font-bold uppercase">Old Identity ID</p><p class="text-slate-600 font-mono">${checkNa(record.oldDeviceName)}</p></div>
-                    </div>
                 </div>
 
                 <div class="mb-4">
